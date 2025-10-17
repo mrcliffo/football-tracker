@@ -75,10 +75,28 @@ export function useAuth() {
   }, [setUser, setProfile, setIsLoading, clear, router]);
 
   const signOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    clear();
-    router.push('/login');
+    console.log('useAuth signOut called');
+    try {
+      // Call server-side sign out API
+      console.log('Calling /api/auth/signout');
+      const response = await fetch('/api/auth/signout', {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        console.error('Sign out API failed');
+      }
+
+      console.log('API sign out completed, clearing state');
+      clear();
+      console.log('Redirecting to login');
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Unexpected sign out error:', error);
+      // Even if there's an error, clear local state and redirect
+      clear();
+      window.location.href = '/login';
+    }
   };
 
   return {

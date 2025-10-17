@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,6 +17,19 @@ import { LogOut, User } from 'lucide-react';
 
 export function Header() {
   const { user, profile, signOut } = useAuth();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    console.log('Sign out clicked');
+    setIsSigningOut(true);
+    try {
+      await signOut();
+      console.log('Sign out completed');
+    } catch (error) {
+      console.error('Sign out failed:', error);
+      setIsSigningOut(false);
+    }
+  };
 
   const initials = profile?.full_name
     ?.split(' ')
@@ -63,9 +77,15 @@ export function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={signOut} className="cursor-pointer">
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      handleSignOut();
+                    }}
+                    disabled={isSigningOut}
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
+                    {isSigningOut ? 'Signing out...' : 'Sign Out'}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
