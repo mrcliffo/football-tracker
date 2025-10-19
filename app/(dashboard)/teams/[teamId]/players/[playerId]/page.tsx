@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect, notFound } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, User, Trophy, Target, HandMetal, Shield, AlertCircle, Award, Crown, Sparkles } from 'lucide-react';
+import { ArrowLeft, User, Trophy, Target, HandMetal, Shield, AlertCircle, Award, Crown, Sparkles, Save } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -203,7 +203,7 @@ export default async function PlayerDetailPage({ params }: PlayerDetailPageProps
         {/* Overview Tab */}
         <TabsContent value="overview" className="mt-6 space-y-6">
           {/* Quick Stats */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Matches Played</CardDescription>
@@ -237,19 +237,24 @@ export default async function PlayerDetailPage({ params }: PlayerDetailPageProps
                 </CardTitle>
               </CardHeader>
             </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Saves</CardDescription>
+                <CardTitle className="text-3xl flex items-center gap-2">
+                  <Save className="h-6 w-6 text-orange-600" />
+                  {stats.total_saves || 0}
+                </CardTitle>
+              </CardHeader>
+            </Card>
           </div>
 
           {/* Detailed Stats */}
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Performance Stats</CardTitle>
+                <CardTitle>Discipline</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Saves</span>
-                  <span className="font-medium">{stats.total_saves || 0}</span>
-                </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Yellow Cards</span>
                   <span className="font-medium text-yellow-600">
