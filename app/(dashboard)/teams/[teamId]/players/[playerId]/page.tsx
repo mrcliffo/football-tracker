@@ -332,7 +332,7 @@ export default async function PlayerDetailPage({ params }: PlayerDetailPageProps
                   </CardHeader>
                   {match.status === 'completed' && (
                     <CardContent>
-                      <div className="grid grid-cols-3 gap-4 text-center text-sm">
+                      <div className="grid grid-cols-4 gap-4 text-center text-sm">
                         <div>
                           <p className="text-muted-foreground">Goals</p>
                           <p className="font-bold text-lg">{match.stats.goals}</p>
@@ -344,6 +344,10 @@ export default async function PlayerDetailPage({ params }: PlayerDetailPageProps
                         <div>
                           <p className="text-muted-foreground">Tackles</p>
                           <p className="font-bold text-lg">{match.stats.tackles}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Saves</p>
+                          <p className="font-bold text-lg">{match.stats.saves}</p>
                         </div>
                       </div>
                     </CardContent>
