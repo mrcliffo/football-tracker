@@ -34,6 +34,13 @@ You have two options to run the migrations:
    - `supabase/migrations/002_create_teams_table.sql`
    - `supabase/migrations/003_create_players_table.sql`
    - `supabase/migrations/004_create_team_members_table.sql`
+   - `supabase/migrations/005_create_matches_table.sql`
+   - `supabase/migrations/006_create_match_players_table.sql`
+   - `supabase/migrations/007_create_period_tracking_table.sql`
+   - `supabase/migrations/008_create_match_events_table.sql`
+   - `supabase/migrations/009_fix_rls_infinite_recursion.sql`
+   - `supabase/migrations/010_create_match_awards_table.sql`
+   - `supabase/migrations/011_create_player_stats_view.sql`
 5. Click **Run** for each migration
 
 ### Option B: Using Supabase CLI (Advanced)
@@ -58,14 +65,23 @@ You have two options to run the migrations:
 After running migrations, verify in Supabase dashboard:
 
 1. Go to **Table Editor**
-2. You should see 4 tables:
-   - `profiles`
-   - `teams`
-   - `players`
-   - `team_members`
+2. You should see 9 tables:
+   - `profiles` - User profiles with roles
+   - `teams` - Team information
+   - `players` - Player rosters
+   - `team_members` - Parent-player relationships
+   - `matches` - Match schedules
+   - `match_players` - Match participation
+   - `period_tracking` - Match period timings
+   - `match_events` - Match events (goals, assists, etc.)
+   - `match_awards` - Player of the Match awards
 
-3. Go to **Authentication** → **Policies**
-4. Verify RLS policies are active for all tables
+3. Go to **Database** → **Views**
+4. You should see 1 view:
+   - `player_stats_view` - Aggregated player statistics
+
+5. Go to **Authentication** → **Policies**
+6. Verify RLS policies are active for all tables
 
 ## Step 5: Test Connection
 
@@ -100,20 +116,45 @@ Once setup is complete, you can:
 1. Register a new user (will auto-create profile)
 2. Create teams (if you registered as Manager)
 3. Add players to teams
+4. Schedule matches
+5. Log live match events
+6. View statistics on the Stats tab
 
 ## Database Schema Overview
 
 ```
 auth.users (Supabase managed)
     ↓
-profiles (your data: role, full_name, phone)
+profiles (role: manager/parent, full_name, phone)
     ↓
 teams (manager_id → profiles.id)
     ↓
 players (team_id → teams.id)
+    ↓
+matches (team_id → teams.id, captain_id → players.id)
+    ↓
+├── match_players (match_id, player_id, is_captain)
+├── period_tracking (match_id, period_number, timings)
+├── match_events (match_id, player_id, event_type, time)
+└── match_awards (match_id, player_id, award_type)
 
-team_members (for parent access)
+team_members (for parent access - Feature Slice 6)
     - user_id → profiles.id
     - team_id → teams.id
     - player_id → players.id (optional)
+
+Views:
+player_stats_view (aggregates from match_events)
+    - Calculates goals, assists, tackles, saves
+    - Player of the Match awards count
+    - Captain appearances
 ```
+
+## Feature Slices Completed
+
+- ✅ **Slice 1**: Team & Player Management
+- ✅ **Slice 2**: Match Setup & Scheduling
+- ✅ **Slice 3**: Live Match Event Logging
+- ✅ **Slice 4**: Match Completion & Rewards
+- ✅ **Slice 5**: Player Statistics & Reports
+- 🚧 **Slice 6**: Parent Access & Privacy (Coming Soon)

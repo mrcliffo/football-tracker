@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, Settings } from 'lucide-react';
 
 export function Header() {
   const { user, profile, signOut } = useAuth();
@@ -37,20 +37,18 @@ export function Header() {
     .join('')
     .toUpperCase() || user?.email?.[0].toUpperCase() || 'U';
 
+  const homeLink = profile?.role === 'parent' ? '/parent/teams' : '/teams';
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center px-4">
-        <Link href="/teams" className="flex items-center space-x-2">
+        <Link href={homeLink} className="flex items-center space-x-2">
           <span className="text-xl font-bold">⚽ Football Tracker</span>
         </Link>
 
         <nav className="ml-auto flex items-center space-x-4">
           {user ? (
             <>
-              <Link href="/teams">
-                <Button variant="ghost">Teams</Button>
-              </Link>
-
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
@@ -76,6 +74,16 @@ export function Header() {
                       Profile
                     </Link>
                   </DropdownMenuItem>
+                  {profile?.role === 'manager' && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin" className="cursor-pointer">
+                          <Settings className="mr-2 h-4 w-4" />
+                          Admin
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onSelect={(e) => {

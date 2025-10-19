@@ -41,7 +41,7 @@ export function LoginForm() {
     const supabase = createClient();
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { error: signInError, data: authData } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       });
@@ -51,8 +51,19 @@ export function LoginForm() {
         return;
       }
 
-      // Redirect to teams page after successful login
-      router.push('/teams');
+      // Get user profile to determine role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', authData.user.id)
+        .single();
+
+      // Redirect based on role
+      if (profile?.role === 'parent') {
+        router.push('/parent/teams');
+      } else {
+        router.push('/teams');
+      }
       router.refresh();
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
