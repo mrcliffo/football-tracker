@@ -126,7 +126,8 @@ RESTful API with nested resource routes:
     POST - Evaluate rewards after match completion
 
   /report - AI match report
-    POST - Generate AI summary
+    GET - Fetch existing report
+    POST - Generate or regenerate AI summary (manager-only)
 
 /api/parent/teams
   GET - Parent's team cards
@@ -220,8 +221,10 @@ components/
 
 **AI Match Reports:**
 - Uses OpenAI API to generate match summaries
-- Includes player stats, key events, period breakdown
-- Stored in match metadata
+- Manager-triggered via button (not automatic on match completion)
+- Includes player stats, key events, Player of the Match award
+- Can be regenerated multiple times to refresh content
+- Stored in `match_reports` table
 
 **Parent Access Model:**
 - Parents linked to players via email
@@ -325,6 +328,16 @@ try {
    - **Icon**: Emoji to display
 4. Reward will be auto-evaluated via `rewardEvaluator.ts` after match completion
 5. For special criteria (multi-event requirements), use scope "Special" and extend `RewardMetadata` in evaluation logic
+
+### Generating Match Reports
+1. Complete the match (all periods ended)
+2. Award Player of the Match (optional but recommended)
+3. Navigate to the match summary page
+4. Click "Generate Match Report" button
+5. To regenerate with updated POTM or events, click "Regenerate" button
+6. Report includes POTM award, player stats, and key events
+
+**Note:** Reports are manually triggered by managers, not auto-generated on match completion. This ensures the Player of the Match award is correctly included.
 
 ### Debugging Parent Access Issues
 - Check `team_members` table for parent-player links

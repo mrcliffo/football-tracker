@@ -11,7 +11,7 @@ interface RouteParams {
 
 /**
  * GET /api/teams/[teamId]/matches/[matchId]/report
- * Get or generate AI match report
+ * Fetch existing match report
  */
 export async function GET(
   request: NextRequest,
@@ -34,7 +34,7 @@ export async function GET(
     // Verify match exists and belongs to team
     const { data: match, error: matchError } = await supabase
       .from('matches')
-      .select('id, opponent_name, match_date, status, team_id')
+      .select('id, status, team_id')
       .eq('id', matchId)
       .eq('team_id', teamId)
       .eq('is_active', true)
@@ -67,15 +67,82 @@ export async function GET(
       }
     }
 
-    // Check if report already exists
-    const { data: existingReport } = await supabase
+    // Fetch existing report
+    const { data: existingReport, error: reportError } = await supabase
       .from('match_reports')
       .select('*')
       .eq('match_id', matchId)
+      .maybeSingle();
+
+    if (reportError) {
+      console.error('Error fetching match report:', reportError);
+      return NextResponse.json(
+        { error: 'Failed to fetch match report' },
+        { status: 500 }
+      );
+    }
+
+    if (!existingReport) {
+      return NextResponse.json({ error: 'No report found' }, { status: 404 });
+    }
+
+    return NextResponse.json(existingReport);
+  } catch (error) {
+    console.error('Error in GET /api/teams/[teamId]/matches/[matchId]/report:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/teams/[teamId]/matches/[matchId]/report
+ * Generate or regenerate AI match report
+ */
+export async function POST(
+  request: NextRequest,
+  { params }: RouteParams
+) {
+  try {
+    const { teamId, matchId } = await params;
+    const supabase = await createClient();
+
+    // Get current user
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Verify match exists and belongs to team
+    const { data: match, error: matchError } = await supabase
+      .from('matches')
+      .select('id, opponent_name, match_date, status, team_id')
+      .eq('id', matchId)
+      .eq('team_id', teamId)
+      .eq('is_active', true)
       .single();
 
-    if (existingReport) {
-      return NextResponse.json(existingReport);
+    if (matchError || !match) {
+      return NextResponse.json({ error: 'Match not found' }, { status: 404 });
+    }
+
+    // Verify user is the team manager (only managers can generate reports)
+    const { data: team } = await supabase
+      .from('teams')
+      .select('manager_id')
+      .eq('id', teamId)
+      .single();
+
+    if (team?.manager_id !== user.id) {
+      return NextResponse.json(
+        { error: 'Only team managers can generate match reports' },
+        { status: 403 }
+      );
     }
 
     // Only generate report for completed matches
@@ -114,7 +181,7 @@ export async function GET(
       `)
       .eq('match_id', matchId)
       .eq('award_type', 'player_of_match')
-      .single();
+      .maybeSingle();
 
     // Generate AI report
     const reportText = await generateMatchReport({
@@ -125,27 +192,58 @@ export async function GET(
       potm: potmAward,
     });
 
-    // Save report to database
-    const { data: newReport, error: insertError } = await supabase
+    // Check if report already exists
+    const { data: existingReport } = await supabase
       .from('match_reports')
-      .insert({
-        match_id: matchId,
-        report_text: reportText,
-      })
-      .select()
-      .single();
+      .select('id')
+      .eq('match_id', matchId)
+      .maybeSingle();
 
-    if (insertError) {
-      console.error('Error saving match report:', insertError);
-      return NextResponse.json(
-        { error: 'Failed to save match report' },
-        { status: 500 }
-      );
+    let report;
+    if (existingReport) {
+      // Update existing report
+      const { data: updatedReport, error: updateError } = await supabase
+        .from('match_reports')
+        .update({
+          report_text: reportText,
+          generated_at: new Date().toISOString(),
+        })
+        .eq('id', existingReport.id)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error('Error updating match report:', updateError);
+        return NextResponse.json(
+          { error: 'Failed to update match report' },
+          { status: 500 }
+        );
+      }
+      report = updatedReport;
+    } else {
+      // Create new report
+      const { data: newReport, error: insertError } = await supabase
+        .from('match_reports')
+        .insert({
+          match_id: matchId,
+          report_text: reportText,
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error saving match report:', insertError);
+        return NextResponse.json(
+          { error: 'Failed to save match report' },
+          { status: 500 }
+        );
+      }
+      report = newReport;
     }
 
-    return NextResponse.json(newReport);
+    return NextResponse.json(report);
   } catch (error) {
-    console.error('Error in GET /api/teams/[teamId]/matches/[matchId]/report:', error);
+    console.error('Error in POST /api/teams/[teamId]/matches/[matchId]/report:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Loader2, AlertCircle } from 'lucide-react';
+import { FileText, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
 
 interface MatchReportProps {
   teamId: string;
@@ -38,12 +39,7 @@ export function MatchReport({ teamId, matchId, canGenerate = false }: MatchRepor
       const response = await fetch(`/api/teams/${teamId}/matches/${matchId}/report`);
 
       if (!response.ok) {
-        if (response.status === 400) {
-          // Match not completed yet
-          const data = await response.json();
-          setError(data.error);
-          setReport(null);
-        } else if (response.status === 404) {
+        if (response.status === 404) {
           // No report exists yet - this is normal, not an error
           setReport(null);
           setError(null);
@@ -64,13 +60,35 @@ export function MatchReport({ teamId, matchId, canGenerate = false }: MatchRepor
       setError(null);
     } finally {
       setLoading(false);
-      setGenerating(false);
     }
   };
 
   const generateReport = async () => {
-    setGenerating(true);
-    await fetchReport();
+    try {
+      setGenerating(true);
+      setError(null);
+
+      const response = await fetch(`/api/teams/${teamId}/matches/${matchId}/report`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setError(data.error || 'Failed to generate match report');
+        toast.error(data.error || 'Failed to generate match report');
+        return;
+      }
+
+      const data = await response.json();
+      setReport(data);
+      toast.success(report ? 'Match report regenerated successfully' : 'Match report generated successfully');
+    } catch (err) {
+      console.error('Error generating match report:', err);
+      setError('Failed to generate match report');
+      toast.error('Failed to generate match report');
+    } finally {
+      setGenerating(false);
+    }
   };
 
   if (loading) {
@@ -128,14 +146,38 @@ export function MatchReport({ teamId, matchId, canGenerate = false }: MatchRepor
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          Match Report
-        </CardTitle>
-        <CardDescription>
-          Generated on {new Date(report.generated_at).toLocaleDateString()} at{' '}
-          {new Date(report.generated_at).toLocaleTimeString()}
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Match Report
+            </CardTitle>
+            <CardDescription>
+              Generated on {new Date(report.generated_at).toLocaleDateString()} at{' '}
+              {new Date(report.generated_at).toLocaleTimeString()}
+            </CardDescription>
+          </div>
+          {canGenerate && (
+            <Button
+              onClick={generateReport}
+              disabled={generating}
+              variant="outline"
+              size="sm"
+            >
+              {generating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Regenerating...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Regenerate
+                </>
+              )}
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="prose prose-sm max-w-none">
