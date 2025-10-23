@@ -3,7 +3,7 @@
 -- instead of emojis for better design consistency
 
 -- Update existing event type icons to Lucide names
-UPDATE event_types SET icon = 'trophy' WHERE name = 'goal';
+UPDATE event_types SET icon = 'football' WHERE name = 'goal';
 UPDATE event_types SET icon = 'target' WHERE name = 'assist';
 UPDATE event_types SET icon = 'shield' WHERE name = 'tackle';
 UPDATE event_types SET icon = 'save' WHERE name = 'save';

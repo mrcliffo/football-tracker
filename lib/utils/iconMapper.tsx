@@ -29,6 +29,7 @@ export function getIconComponent(iconName: string | null | undefined): LucideIco
  * Visit https://lucide.dev/icons for the full list
  */
 export const COMMON_EVENT_ICONS = [
+  { name: 'football', label: 'Football' },
   { name: 'trophy', label: 'Trophy' },
   { name: 'target', label: 'Target' },
   { name: 'shield', label: 'Shield' },
