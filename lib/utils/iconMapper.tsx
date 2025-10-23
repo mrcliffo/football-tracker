@@ -32,7 +32,8 @@ export function getIconComponent(iconName: string | null | undefined): LucideIco
  */
 export const COMMON_EVENT_ICONS = [
   // Scoring & Goals
-  { name: 'football', label: 'Football' },
+  { name: 'volleyball', label: 'Volleyball (Football/Soccer Ball)' },
+  { name: 'football', label: 'Football (American)' },
   { name: 'goal', label: 'Goal Net' },
   { name: 'trophy', label: 'Trophy' },
   { name: 'target', label: 'Target' },
