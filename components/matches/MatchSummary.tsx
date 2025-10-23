@@ -4,12 +4,13 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, Goal, Crosshair, Shield, Save, AlertCircle, Award, Sparkles, Loader2 } from 'lucide-react';
+import { Trophy, Sparkles, Loader2 } from 'lucide-react';
 import { Player, MatchEvent, PlayerReward, Reward } from '@/lib/types/database';
 import { PlayerOfMatchDialog } from './PlayerOfMatchDialog';
 import { RewardBadge } from '@/components/rewards/RewardBadge';
 import { MatchReport } from './MatchReport';
 import { toast } from 'sonner';
+import { getIconComponent } from '@/lib/utils/iconMapper';
 
 interface ActiveEventType {
   id: string;
@@ -163,15 +164,15 @@ export function MatchSummary({ teamId, matchId, players, events }: MatchSummaryP
     }
   };
 
-  // Helper function to get icon and color for event type
-  const getEventTypeIcon = (eventTypeName: string) => {
-    if (eventTypeName.includes('goal')) return { Icon: Goal, color: 'text-green-500' };
-    if (eventTypeName.includes('assist')) return { Icon: Crosshair, color: 'text-blue-500' };
-    if (eventTypeName.includes('tackle')) return { Icon: Shield, color: 'text-purple-500' };
-    if (eventTypeName.includes('save')) return { Icon: Save, color: 'text-orange-500' };
-    if (eventTypeName.includes('yellow')) return { Icon: AlertCircle, color: 'text-yellow-500' };
-    if (eventTypeName.includes('red')) return { Icon: AlertCircle, color: 'text-red-500' };
-    return { Icon: Trophy, color: 'text-muted-foreground' };
+  // Helper function to get color for event type (for backward compatibility)
+  const getEventTypeColor = (eventTypeName: string) => {
+    if (eventTypeName.includes('goal')) return 'text-green-500';
+    if (eventTypeName.includes('assist')) return 'text-blue-500';
+    if (eventTypeName.includes('tackle')) return 'text-purple-500';
+    if (eventTypeName.includes('save')) return 'text-orange-500';
+    if (eventTypeName.includes('yellow')) return 'text-yellow-500';
+    if (eventTypeName.includes('red')) return 'text-red-500';
+    return 'text-muted-foreground';
   };
 
   const getEventTypeBadgeColor = (eventTypeName: string) => {
@@ -247,7 +248,8 @@ export function MatchSummary({ teamId, matchId, players, events }: MatchSummaryP
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {activeEventTypes.map((eventType) => {
-                const { Icon, color } = getEventTypeIcon(eventType.name);
+                const Icon = getIconComponent(eventType.icon);
+                const color = getEventTypeColor(eventType.name);
                 const count = teamTotals[eventType.name] || 0;
 
                 return (
@@ -301,7 +303,7 @@ export function MatchSummary({ teamId, matchId, players, events }: MatchSummaryP
                       const count = stats.eventCounts[eventType.name] || 0;
                       if (count === 0) return null;
 
-                      const { Icon, color } = getEventTypeIcon(eventType.name);
+                      const Icon = getIconComponent(eventType.icon);
                       const badgeColor = getEventTypeBadgeColor(eventType.name);
 
                       return (

@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect, notFound } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, User, Trophy, Target, HandMetal, Shield, AlertCircle, Award, Crown, Sparkles, Goal, Crosshair, Save } from 'lucide-react';
+import { ArrowLeft, User, Trophy, Award, Crown, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PlayerRewardsSection } from '@/components/rewards/PlayerRewardsSection';
 import { MatchReport } from '@/components/matches/MatchReport';
+import { getIconComponent } from '@/lib/utils/iconMapper';
 
 interface ChildDetailPageProps {
   params: Promise<{
@@ -185,16 +186,7 @@ export default async function ChildDetailPage({ params }: ChildDetailPageProps) 
     }
   }
 
-  // Helper functions for dynamic rendering
-  const getEventIcon = (eventTypeName: string) => {
-    if (eventTypeName.includes('goal')) return Goal;
-    if (eventTypeName.includes('assist')) return Crosshair;
-    if (eventTypeName.includes('tackle')) return Shield;
-    if (eventTypeName.includes('save')) return Save;
-    if (eventTypeName.includes('yellow') || eventTypeName.includes('red')) return AlertCircle;
-    return Trophy;
-  };
-
+  // Helper function for event type colors
   const getEventColor = (eventTypeName: string) => {
     if (eventTypeName.includes('goal')) return 'text-green-600';
     if (eventTypeName.includes('assist')) return 'text-blue-600';
@@ -290,7 +282,7 @@ export default async function ChildDetailPage({ params }: ChildDetailPageProps) 
                   </CardHeader>
                 </Card>
                 {quickStatsEventTypes.map((eventType: any) => {
-                  const Icon = getEventIcon(eventType.name);
+                  const Icon = getIconComponent(eventType.icon);
                   const colorClass = getEventColor(eventType.name);
                   const columnName = `total_${eventType.name}`;
                   const value = stats[columnName] || 0;

@@ -6,20 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Trophy,
-  Target,
-  HandHelping,
-  ShieldAlert,
-  Save,
   Info,
-  Award,
   TrendingUp,
   AlertCircle,
-  Goal,
-  Crosshair,
-  Shield,
   Loader2
 } from 'lucide-react';
 import { PlayerStatsList } from './PlayerStatsList';
+import { getIconComponent } from '@/lib/utils/iconMapper';
 
 interface TeamStatsProps {
   teamId: string;
@@ -91,15 +84,15 @@ export function TeamStats({ teamId }: TeamStatsProps) {
     }
   };
 
-  // Helper function to get icon and color for event type
-  const getEventTypeIcon = (eventTypeName: string) => {
-    if (eventTypeName.includes('goal')) return { Icon: Goal, color: 'text-green-500' };
-    if (eventTypeName.includes('assist')) return { Icon: Crosshair, color: 'text-blue-500' };
-    if (eventTypeName.includes('tackle')) return { Icon: Shield, color: 'text-purple-500' };
-    if (eventTypeName.includes('save')) return { Icon: Save, color: 'text-orange-500' };
-    if (eventTypeName.includes('yellow')) return { Icon: AlertCircle, color: 'text-yellow-500' };
-    if (eventTypeName.includes('red')) return { Icon: AlertCircle, color: 'text-red-500' };
-    return { Icon: Trophy, color: 'text-muted-foreground' };
+  // Helper function to get color for event type
+  const getEventTypeColor = (eventTypeName: string) => {
+    if (eventTypeName.includes('goal')) return 'text-green-500';
+    if (eventTypeName.includes('assist')) return 'text-blue-500';
+    if (eventTypeName.includes('tackle')) return 'text-purple-500';
+    if (eventTypeName.includes('save')) return 'text-orange-500';
+    if (eventTypeName.includes('yellow')) return 'text-yellow-500';
+    if (eventTypeName.includes('red')) return 'text-red-500';
+    return 'text-muted-foreground';
   };
 
   if (loading) {
@@ -177,7 +170,7 @@ export function TeamStats({ teamId }: TeamStatsProps) {
             const average = teamTotals.totalMatches > 0
               ? (total / teamTotals.totalMatches).toFixed(1)
               : '0.0';
-            const { Icon, color } = getEventTypeIcon(eventType.name);
+            const Icon = getIconComponent(eventType.icon);
 
             return (
               <StatCard
@@ -204,7 +197,8 @@ export function TeamStats({ teamId }: TeamStatsProps) {
               const topPerformer = topPerformers[eventType.name];
               if (!topPerformer) return null;
 
-              const { Icon, color } = getEventTypeIcon(eventType.name);
+              const Icon = getIconComponent(eventType.icon);
+              const color = getEventTypeColor(eventType.name);
 
               return (
                 <Card key={eventType.id}>
