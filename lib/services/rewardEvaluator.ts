@@ -16,11 +16,8 @@ interface EvaluationResult {
 
 interface PlayerEventCounts {
   playerId: string;
-  goals: number;
-  assists: number;
-  tackles: number;
-  saves: number;
   totalEvents: number;
+  eventCounts: Record<string, number>; // Dynamic event type counts
 }
 
 /**
@@ -78,33 +75,18 @@ export async function evaluateMatchRewards(
 
     const captainId = matchPlayers?.find((mp) => mp.is_captain)?.player_id;
 
-    // 5. Calculate event counts per player
+    // 5. Calculate event counts per player (dynamically handles all event types)
     const playerEventCounts: Map<string, PlayerEventCounts> = new Map();
 
     events?.forEach((event) => {
       const counts = playerEventCounts.get(event.player_id) || {
         playerId: event.player_id,
-        goals: 0,
-        assists: 0,
-        tackles: 0,
-        saves: 0,
         totalEvents: 0,
+        eventCounts: {},
       };
 
-      switch (event.event_type) {
-        case 'goal':
-          counts.goals++;
-          break;
-        case 'assist':
-          counts.assists++;
-          break;
-        case 'tackle':
-          counts.tackles++;
-          break;
-        case 'save':
-          counts.saves++;
-          break;
-      }
+      // Dynamically count all event types
+      counts.eventCounts[event.event_type] = (counts.eventCounts[event.event_type] || 0) + 1;
       counts.totalEvents++;
 
       playerEventCounts.set(event.player_id, counts);
@@ -231,9 +213,9 @@ async function evaluateRewardCriteria(
     // All Rounder: 1 goal, 1 assist, 1 tackle in single match
     if (metadata.requires.goal && metadata.requires.assist && metadata.requires.tackle) {
       return (
-        matchCounts.goals >= metadata.requires.goal &&
-        matchCounts.assists >= metadata.requires.assist &&
-        matchCounts.tackles >= metadata.requires.tackle
+        (matchCounts.eventCounts['goal'] || 0) >= metadata.requires.goal &&
+        (matchCounts.eventCounts['assist'] || 0) >= metadata.requires.assist &&
+        (matchCounts.eventCounts['tackle'] || 0) >= metadata.requires.tackle
       );
     }
 
@@ -338,18 +320,7 @@ async function evaluateLeadershipRewards(
  * Get event count for a specific type from match counts
  */
 function getEventCount(counts: PlayerEventCounts, eventType: string): number {
-  switch (eventType) {
-    case 'goal':
-      return counts.goals;
-    case 'assist':
-      return counts.assists;
-    case 'tackle':
-      return counts.tackles;
-    case 'save':
-      return counts.saves;
-    default:
-      return 0;
-  }
+  return counts.eventCounts[eventType] || 0;
 }
 
 /**
