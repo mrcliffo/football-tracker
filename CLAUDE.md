@@ -166,6 +166,13 @@ RESTful API with nested resource routes:
 - `(dashboard)` - Protected manager/parent routes
 - `admin` - Admin panel for event type and reward management (manager-only)
 
+**Admin Panel Structure:**
+- Tab-based navigation (mobile-first design)
+- `/admin` - Redirects to `/admin/events` by default
+- `/admin/events` - Event type management (create, edit, delete event types)
+- `/admin/rewards` - Reward management (create, edit, delete rewards)
+- `components/admin/AdminTabs.tsx` - Client component for tab navigation
+
 **Component Structure:**
 ```
 components/
@@ -176,6 +183,7 @@ components/
   matches/      # Match creation, period manager, event logger
   stats/        # Statistics displays
   rewards/      # Reward badges and galleries
+  admin/        # Admin panel components (tabs, etc.)
   layout/       # Header with user menu
 ```
 
@@ -293,14 +301,20 @@ try {
 
 ## Common Tasks
 
+### Accessing the Admin Panel
+1. Log in as a manager
+2. Navigate to `/admin` (redirects to `/admin/events`)
+3. Use tabs to switch between Events and Rewards management
+4. All changes are reflected immediately across parent and manager views
+
 ### Adding a New Match Event Type
-1. Go to Admin Panel → Manage Events (`/admin/events`)
+1. Go to Admin Panel → Events tab (`/admin/events`)
 2. Click "Add Event Type"
 3. Fill in name (internal), display name, description, and icon
 4. Event will be available in event logger immediately
 
 ### Adding a New Reward
-1. Go to Admin Panel → Manage Rewards (`/admin/rewards`)
+1. Go to Admin Panel → Rewards tab (`/admin/rewards`)
 2. Click "Add Reward"
 3. Configure:
    - **Name & Description**: Display information
