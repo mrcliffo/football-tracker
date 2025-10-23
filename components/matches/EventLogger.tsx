@@ -68,21 +68,14 @@ export function EventLogger({
     fetchEventTypes();
   }, []);
 
-  const getEventIcon = (eventType: string) => {
-    switch (eventType) {
-      case 'goal':
-        return <Trophy className="h-4 w-4" />;
-      case 'assist':
-        return <Target className="h-4 w-4" />;
-      case 'tackle':
-      case 'save':
-        return <Shield className="h-4 w-4" />;
-      case 'yellow_card':
-      case 'red_card':
-        return <AlertTriangle className="h-4 w-4" />;
-      default:
-        return null;
+  // Get icon component for an event type name
+  const getEventIcon = (eventTypeName: string) => {
+    const eventType = activeEventTypes.find(et => et.name === eventTypeName);
+    if (eventType) {
+      const IconComponent = getIconComponent(eventType.icon);
+      return <IconComponent className="h-4 w-4" />;
     }
+    return null;
   };
 
   const getEventBadgeVariant = (eventType: string) => {
