@@ -188,6 +188,13 @@ components/
   layout/       # Header with user menu
 ```
 
+**Event Logger UX:**
+- Two-stage selection: Event type grid → Player grid
+- Player selection uses 2-column grid layout (no scrolling required on mobile)
+- PlayerButton displays vertically: squad number (top) → name (middle) → position (bottom)
+- Optimized for rapid event logging during live matches
+- 85px minimum tap target height for mobile accessibility
+
 **State Management:**
 - Zustand stores in `lib/stores/`:
   - `authStore.ts` - User + profile state (persisted to localStorage)
