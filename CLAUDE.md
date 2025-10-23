@@ -327,8 +327,19 @@ try {
 ### Adding a New Match Event Type
 1. Go to Admin Panel → Events tab (`/admin/events`)
 2. Click "Add Event Type"
-3. Fill in name (internal), display name, description, and icon
+3. Fill in the form:
+   - **Name (Internal)**: Lowercase identifier with underscores (e.g., `corner_kick`, `free_kick`)
+   - **Display Name**: User-friendly name shown in UI (e.g., "Corner Kick", "Free Kick")
+   - **Description**: Optional explanation of the event
+   - **Icon**: Select from Lucide icon dropdown (e.g., trophy, target, shield)
 4. Event will be available in event logger immediately
+
+**Icon System:**
+- Uses Lucide React icons (https://lucide.dev/icons)
+- Icons stored as text names (e.g., "trophy", "shield-check", "alert-triangle")
+- Dropdown shows 30+ common event icons with live preview
+- Icons dynamically rendered via `getIconComponent()` utility in `lib/utils/iconMapper.tsx`
+- To use any Lucide icon not in dropdown, manually enter the icon name from lucide.dev
 
 ### Adding a New Reward
 1. Go to Admin Panel → Rewards tab (`/admin/rewards`)

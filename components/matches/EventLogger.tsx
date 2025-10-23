@@ -11,6 +11,7 @@ import { MatchEvent, Player, PeriodTracking } from '@/lib/types/database';
 import { EventType } from '@/lib/schemas/event';
 import { EventTypeButton } from './EventTypeButton';
 import { PlayerButton } from './PlayerButton';
+import { getIconComponent } from '@/lib/utils/iconMapper';
 
 interface ActiveEventType {
   id: string;
@@ -234,16 +235,8 @@ export function EventLogger({
                   ) : (
                     <div className="grid grid-cols-2 gap-3">
                       {activeEventTypes.map((eventType) => {
-                        // Map event type names to icons and variants
-                        const getIconForEvent = (name: string) => {
-                          if (name.includes('goal')) return Trophy;
-                          if (name.includes('assist')) return Target;
-                          if (name.includes('tackle') || name.includes('save')) return Shield;
-                          if (name.includes('card')) return AlertTriangle;
-                          if (name.includes('on')) return ArrowRight;
-                          if (name.includes('off')) return ArrowLeft;
-                          return Trophy;
-                        };
+                        // Get Lucide icon component from icon field
+                        const IconComponent = getIconComponent(eventType.icon);
 
                         const getVariantForEvent = (name: string): any => {
                           if (name.includes('goal')) return 'goal';
@@ -260,8 +253,8 @@ export function EventLogger({
                         return (
                           <EventTypeButton
                             key={eventType.id}
-                            icon={getIconForEvent(eventType.name)}
-                            label={eventType.icon ? `${eventType.icon} ${eventType.display_name}` : eventType.display_name}
+                            icon={IconComponent}
+                            label={eventType.display_name}
                             variant={getVariantForEvent(eventType.name)}
                             onClick={() => setSelectedEventType(eventType.name)}
                             disabled={isLoading}

@@ -22,8 +22,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getIconComponent, COMMON_EVENT_ICONS } from '@/lib/utils/iconMapper';
 
 interface EventType {
   id: string;
@@ -255,17 +263,51 @@ export default function EventsManagementPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="icon">Icon (Optional)</Label>
-                <Input
-                  id="icon"
-                  placeholder="⚽"
+                <Label htmlFor="icon">Icon</Label>
+                <Select
                   value={formData.icon}
-                  onChange={(e) =>
-                    setFormData({ ...formData, icon: e.target.value })
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, icon: value })
                   }
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an icon">
+                      {formData.icon && (
+                        <div className="flex items-center gap-2">
+                          {(() => {
+                            const IconComponent = getIconComponent(formData.icon);
+                            return <IconComponent className="h-4 w-4" />;
+                          })()}
+                          <span className="capitalize">{formData.icon.replace(/-/g, ' ')}</span>
+                        </div>
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COMMON_EVENT_ICONS.map((icon) => {
+                      const IconComponent = getIconComponent(icon.name);
+                      return (
+                        <SelectItem key={icon.name} value={icon.name}>
+                          <div className="flex items-center gap-2">
+                            <IconComponent className="h-4 w-4" />
+                            <span>{icon.label}</span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
                 <p className="text-xs text-muted-foreground">
-                  Emoji or icon identifier
+                  Choose from Lucide icons - visit{' '}
+                  <a
+                    href="https://lucide.dev/icons"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-primary"
+                  >
+                    lucide.dev
+                  </a>{' '}
+                  for more options
                 </p>
               </div>
             </div>
@@ -319,14 +361,18 @@ export default function EventsManagementPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                events.map((event) => (
-                  <TableRow key={event.id}>
-                    <TableCell className="text-2xl">{event.icon || '📝'}</TableCell>
-                    <TableCell className="font-mono text-sm">{event.name}</TableCell>
-                    <TableCell className="font-medium">{event.display_name}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {event.description || '—'}
-                    </TableCell>
+                events.map((event) => {
+                  const IconComponent = getIconComponent(event.icon);
+                  return (
+                    <TableRow key={event.id}>
+                      <TableCell>
+                        <IconComponent className="h-6 w-6" />
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">{event.name}</TableCell>
+                      <TableCell className="font-medium">{event.display_name}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {event.description || '—'}
+                      </TableCell>
                     <TableCell>
                       <Button
                         variant={event.is_active ? 'default' : 'secondary'}
@@ -355,7 +401,8 @@ export default function EventsManagementPage() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
+                  );
+                })
               )}
             </TableBody>
           </Table>
