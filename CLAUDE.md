@@ -190,8 +190,9 @@ components/
 
 **State Management:**
 - Zustand stores in `lib/stores/`:
-  - `authStore.ts` - User + profile state
+  - `authStore.ts` - User + profile state (persisted to localStorage)
   - `teamStore.ts` - Team data caching
+- Auth state persisted across page reloads using Zustand persist middleware
 - Server state via SWR for data fetching
 - URL params for routing state
 
@@ -243,6 +244,12 @@ components/
 - Use `Insert` and `Update` variants for mutations
 
 ## Important Conventions
+
+### Authentication State Persistence
+- Auth store (`authStore.ts`) uses Zustand persist middleware
+- User and profile data stored in localStorage with key `'auth-storage'`
+- Ensures manager role/admin access persists across page reloads
+- Loading state is NOT persisted (always starts fresh)
 
 ### Soft Deletes
 All entities use `is_active` boolean flags. Never hard delete records.
