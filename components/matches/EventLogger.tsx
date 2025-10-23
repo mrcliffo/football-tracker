@@ -272,7 +272,7 @@ export function EventLogger({
                   )}
                 </div>
               ) : (
-                // Player Selection List
+                // Player Selection Grid
                 <div>
                   <div className="flex items-center mb-3">
                     <Users className="h-5 w-5 mr-2 text-muted-foreground" />
@@ -280,7 +280,7 @@ export function EventLogger({
                       Select Player
                     </h3>
                   </div>
-                  <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-2">
                     {players.map((player) => (
                       <PlayerButton
                         key={player.id}
