@@ -339,7 +339,12 @@ async function getSeasonEventCount(
     .eq('id', playerId)
     .single();
 
-  if (!player?.team_id) return 0;
+  if (!player?.team_id) {
+    console.log(`[getSeasonEventCount] Player ${playerId} not found or has no team_id`);
+    return 0;
+  }
+
+  console.log(`[getSeasonEventCount] Player ${playerId} belongs to team ${player.team_id}`);
 
   // Get all match IDs for this player's team in this season
   const { data: matches } = await supabase
@@ -348,9 +353,13 @@ async function getSeasonEventCount(
     .eq('status', 'completed')
     .eq('team_id', player.team_id);
 
-  if (!matches || matches.length === 0) return 0;
+  if (!matches || matches.length === 0) {
+    console.log(`[getSeasonEventCount] No completed matches found for team ${player.team_id}`);
+    return 0;
+  }
 
   const matchIds = matches.map((m) => m.id);
+  console.log(`[getSeasonEventCount] Found ${matches.length} completed matches for team ${player.team_id}`);
 
   // Count events
   let query = supabase
@@ -361,9 +370,13 @@ async function getSeasonEventCount(
 
   if (eventType) {
     query = query.eq('event_type', eventType);
+    console.log(`[getSeasonEventCount] Filtering for event_type: ${eventType}`);
+  } else {
+    console.log(`[getSeasonEventCount] Counting ALL event types`);
   }
 
   const { count } = await query;
+  console.log(`[getSeasonEventCount] Found ${count || 0} events for player ${playerId} (event_type: ${eventType || 'all'})`);
   return count || 0;
 }
 
@@ -392,14 +405,20 @@ export async function calculateRewardProgress(
     .eq('id', rewardId)
     .single();
 
-  if (!reward) return { current: 0, target: 0 };
+  if (!reward) {
+    console.log(`[calculateRewardProgress] Reward ${rewardId} not found`);
+    return { current: 0, target: 0 };
+  }
 
   const target = reward.criteria_threshold;
   let current = 0;
 
+  console.log(`[calculateRewardProgress] Calculating progress for reward: ${reward.name}, player: ${playerId}, scope: ${reward.criteria_scope}, event_type: ${reward.criteria_event_type}`);
+
   // For season-based rewards, count events across season
   if (reward.criteria_scope === 'season' && season && reward.criteria_event_type) {
     current = await getSeasonEventCount(supabase, playerId, season, reward.criteria_event_type);
+    console.log(`[calculateRewardProgress] Season reward "${reward.name}": current=${current}, target=${target}, event_type=${reward.criteria_event_type}`);
   }
 
   // For special rewards with total_events
@@ -407,6 +426,7 @@ export async function calculateRewardProgress(
     const metadata = reward.metadata as RewardMetadata | null;
     if (metadata?.requires?.total_events && season) {
       current = await getSeasonEventCount(supabase, playerId, season);
+      console.log(`[calculateRewardProgress] Special reward "${reward.name}" (total_events): current=${current}, target=${metadata.requires.total_events}`);
     }
     if (metadata?.requires?.captain_count) {
       const { count } = await supabase
@@ -415,8 +435,10 @@ export async function calculateRewardProgress(
         .eq('player_id', playerId)
         .eq('is_captain', true);
       current = count || 0;
+      console.log(`[calculateRewardProgress] Special reward "${reward.name}" (captain_count): current=${current}, target=${metadata.requires.captain_count}`);
     }
   }
 
+  console.log(`[calculateRewardProgress] Final result for "${reward.name}": current=${current}, target=${target}`);
   return { current, target };
 }
