@@ -413,7 +413,7 @@ export async function calculateRewardProgress(
   const target = reward.criteria_threshold;
   let current = 0;
 
-  console.log(`[calculateRewardProgress] Calculating progress for reward: ${reward.name}, player: ${playerId}, scope: ${reward.criteria_scope}, event_type: ${reward.criteria_event_type}`);
+  console.log(`[calculateRewardProgress] Calculating progress for reward: ${reward.name}, player: ${playerId}, scope: ${reward.criteria_scope}, event_type: ${reward.criteria_event_type}, metadata:`, reward.metadata);
 
   // For season-based rewards, count events across season
   if (reward.criteria_scope === 'season' && season && reward.criteria_event_type) {
@@ -421,14 +421,15 @@ export async function calculateRewardProgress(
     console.log(`[calculateRewardProgress] Season reward "${reward.name}": current=${current}, target=${target}, event_type=${reward.criteria_event_type}`);
   }
 
-  // For special rewards with total_events
-  if (reward.criteria_scope === 'special') {
+  // For special rewards
+  if (reward.criteria_scope === 'special' && season) {
     const metadata = reward.metadata as RewardMetadata | null;
-    if (metadata?.requires?.total_events && season) {
+
+    // If metadata has specific requirements, use those
+    if (metadata?.requires?.total_events) {
       current = await getSeasonEventCount(supabase, playerId, season);
-      console.log(`[calculateRewardProgress] Special reward "${reward.name}" (total_events): current=${current}, target=${metadata.requires.total_events}`);
-    }
-    if (metadata?.requires?.captain_count) {
+      console.log(`[calculateRewardProgress] Special reward "${reward.name}" (total_events from metadata): current=${current}, target=${metadata.requires.total_events}`);
+    } else if (metadata?.requires?.captain_count) {
       const { count } = await supabase
         .from('match_players')
         .select('id', { count: 'exact', head: true })
@@ -436,6 +437,10 @@ export async function calculateRewardProgress(
         .eq('is_captain', true);
       current = count || 0;
       console.log(`[calculateRewardProgress] Special reward "${reward.name}" (captain_count): current=${current}, target=${metadata.requires.captain_count}`);
+    } else if (!reward.criteria_event_type) {
+      // If no specific event type and no metadata requirements, count ALL events
+      current = await getSeasonEventCount(supabase, playerId, season);
+      console.log(`[calculateRewardProgress] Special reward "${reward.name}" (all events, no metadata): current=${current}, target=${target}`);
     }
   }
 
