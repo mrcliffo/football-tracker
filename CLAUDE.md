@@ -221,11 +221,17 @@ components/
 - Event timestamps use cumulative seconds
 
 **Reward System** (`lib/services/rewardEvaluator.ts`):
-- Automatically evaluated after match completion
+- Automatically evaluated after match completion (triggered when Player of the Match is selected)
+- **Dynamically handles ALL event types** from the database (not hardcoded to goal/assist/tackle/save)
 - Match-based rewards (e.g., Hat Trick = 3 goals in one match)
 - Season-based rewards (e.g., Striker = 30 goals total)
-- Special rewards with multi-criteria (e.g., All Rounder = 1 goal + 1 assist + 1 tackle)
+- Special rewards with multi-criteria:
+  - All Rounder = 1 goal + 1 assist + 1 tackle in single match
+  - Total events across season (e.g., GOAT = 300 total events of any type)
+  - Captain count-based rewards
 - Leadership rewards (Captain milestones, POTM + Captain combo)
+- **Progress tracking**: Works retroactively across all completed matches in the season
+- **Important**: Rewards created after matches have been played will correctly calculate progress from past events
 
 **AI Match Reports:**
 - Uses OpenAI API to generate match summaries
@@ -348,11 +354,24 @@ try {
    - **Name & Description**: Display information
    - **Reward Type**: Match-based, Season-based, or Leadership
    - **Criteria Scope**: Single match, Season, Career, or Special
-   - **Event Type**: Goal, Assist, Tackle, Save (or None for special rewards)
+   - **Event Type**: Select from ANY active event type (dynamically populated from database), or "None" for special rewards
    - **Threshold**: Number of events required
    - **Icon**: Emoji to display
-4. Reward will be auto-evaluated via `rewardEvaluator.ts` after match completion
-5. For special criteria (multi-event requirements), use scope "Special" and extend `RewardMetadata` in evaluation logic
+4. Reward will be auto-evaluated via `rewardEvaluator.ts` after match completion (when POTM is selected)
+5. **Progress calculation works retroactively** - rewards created after matches will correctly count past events
+
+**Event Type Handling:**
+- Rewards support **ALL custom event types** created via admin panel
+- For counting **all events** (e.g., GOAT = 300 total events), use:
+  - Reward Type: Season-based
+  - Criteria Scope: Special
+  - Event Type: None (Special)
+  - This will count ALL event types: goals, assists, tackles, saves, and any custom events
+
+**Special Reward Types:**
+- Multi-event requirements (use `metadata.requires` in database): e.g., `{requires: {goal: 1, assist: 1, tackle: 1}}`
+- Total events across season: Set Event Type to "None" with scope "Special"
+- Captain-based: Use `metadata.requires.captain_count`
 
 ### Generating Match Reports
 1. Complete the match (all periods ended)
